@@ -1,0 +1,46 @@
+static_resources:
+  listeners:
+  - name: listener_0
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 10000
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: hello_world_service
+          http_filters:
+          - name: envoy.filters.http.router
+            typed_config:
+             "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+          route_config:
+            name: my_first_route
+            virtual_hosts:
+            - name: direct_response_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                  headers:
+                  - name: minor_version
+                    range_match:
+                      start: 1
+                      end: 11
+                    #INVERT RANGE MATCH  (invert_match: true)
+                    # range_match: 
+                    #   start: 1
+                    #   end: 6
+                    # invert_match: true
+
+                direct_response:
+                  status: 200
+                  body:
+                    inline_string: "yay"
+              - match:
+                  prefix: "/"
+                direct_response:
+                  status: 200
+                  body:
+                    inline_string: "default"

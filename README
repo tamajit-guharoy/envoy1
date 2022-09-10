@@ -1,0 +1,105 @@
+
+
+docker run -d -p 8099:80 kennethreitz/httpbin
+-------------------
+docker run -d  -p 8091:8080 hashicorp/http-echo -listen=:8080 -text="hello world 1"
+docker run -d  -p 8092:8080 hashicorp/http-echo -listen=:8080 -text="hello world 2"
+func-e run -c 04runtime_fraction.yaml
+while true;do curl localhost:10000;sleep 0.5 ;done;
+------------------
+func-e run -c 06header_range_match.yaml
+curl localhost:10000 -H "minor_version: 2"
+curl localhost:10000 -H "minor_version: 20"
+------------------
+func-e run -c 07header_present_match.yaml
+curl localhost:10000 -H "minor_version: 20"
+curl localhost:10000
+------------------
+func-e run -c 08header_string_match.yaml
+curl localhost:10000 -H "minor_version: hello"
+curl localhost:10000 -H "minor_version: 100"
+------------------
+
+docker run -d -p 8099:80 kennethreitz/httpbin
+func-e run -c 09cluster.yaml
+
+compare headers:
+
+
+
+call directly:
+curl -i  localhost:8099/get
+
+HTTP/1.1 200 OK
+Server: gunicorn/19.9.0
+Date: Sat, 27 Aug 2022 18:15:35 GMT
+Connection: keep-alive
+Content-Type: application/json
+Content-Length: 189
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+
+{
+  "args": {},
+  "headers": {
+    "Accept": "*/*",
+    "Host": "localhost:8099",
+    "User-Agent": "curl/7.81.0"
+  },
+  "origin": "172.17.0.1",
+  "url": "http://localhost:8099/get"
+}
+
+
+call via envoy:
+
+curl -i  localhost:10000/get
+HTTP/1.1 200 OK
+server: envoy
+date: Sat, 27 Aug 2022 18:16:21 GMT
+content-type: application/json
+content-length: 239
+access-control-allow-origin: *
+access-control-allow-credentials: true
+x-envoy-upstream-service-time: 1
+
+{
+  "args": {},
+  "headers": {
+    "Accept": "*/*",
+    "Host": "localhost:10000",
+    "User-Agent": "curl/7.81.0",
+    "X-Envoy-Expected-Rq-Timeout-Ms": "15000"
+  },
+  "origin": "172.17.0.1",
+  "url": "http://localhost:10000/get"
+}
+---------------------------------
+docker run -d -p 8099:80 kennethreitz/httpbin
+
+func-e run -c 10header_update1.yaml
+
+>curl -i  localhost:10000/get
+HTTP/1.1 200 OK
+server: envoy
+date: Sat, 27 Aug 2022 18:43:38 GMT
+content-type: application/json
+content-length: 239
+access-control-allow-origin: *
+access-control-allow-credentials: true
+x-envoy-upstream-service-time: 1
+header_1: some_value    #new response header added
+
+{
+  "args": {},
+  "headers": {
+    "Accept": "*/*",
+    "Host": "localhost:10000",
+    "User-Agent": "curl/7.81.0",
+    "X-Envoy-Expected-Rq-Timeout-Ms": "15000"
+  },
+  "origin": "172.17.0.1",
+  "url": "http://localhost:10000/get"
+}
+----------------------------
+
